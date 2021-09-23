@@ -3,7 +3,7 @@
 [![YouTube](https://img.shields.io/badge/Video-YouTube-red)](https://cortx.link/videos)
 [![Slack](https://img.shields.io/badge/chat-on%20Slack-blue")](https://cortx.link/join-slack)
 
-# CORTX S3 Multisite
+# CORTX S3 Multisite test
 CORTX S3 Multisite feature provides ability to Asynchronous replication of S3 objects across CORTX clusters or S3 regions or to any S3 compatible object storages.
 
 This project has 2 modules that help with S3 replication:
