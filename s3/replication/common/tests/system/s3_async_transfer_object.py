@@ -49,12 +49,13 @@ async def main():
     session = S3Session(logger, s3_site, config.access_key, config.secret_key)
 
     # Generate object names
-    source_object_name = config.object_name_prefix + "test"
-    target_object_name = config.object_name_prefix + "copy"
+    source_object_name = str(config.object_name_prefix)
+    target_object_name = str(config.object_name_prefix)
     request_id = "dummy-request-id"
     object_reader = S3AsyncGetObject(session, request_id,
                                      config.source_bucket_name,
-                                     source_object_name, config.object_size)
+                                     source_object_name, config.object_size,
+                                     config.range_read_offset, config.range_read_length)
     object_writer = S3AsyncPutObject(session, request_id,
                                      config.target_bucket_name,
                                      target_object_name, config.object_size)

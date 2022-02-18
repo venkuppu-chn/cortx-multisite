@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 #
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
@@ -39,6 +37,9 @@ async def main():
         bucket_name = config.source_bucket_name
         object_name = config.object_name_prefix + "test"
 
+        # Get object range from config
+        obj_range = config.object_range
+
         request_uri = AWSV4Signer.fmt_s3_request_uri(bucket_name, object_name)
         query_params = ""
         body = ""
@@ -52,29 +53,19 @@ async def main():
             'GET',
             request_uri,
             query_params,
-            body)
+            body,
+            obj_range)
 
         if (headers['Authorization'] is None):
             print("Failed to generate v4 signature")
             sys.exit(-1)
 
-        total_received = 0
-
         print('GET on {}'.format(config.endpoint + request_uri))
         async with session.get(config.endpoint + request_uri,
                                headers=headers) as resp:
             http_status = resp.status
-            while True:
-                chunk = await resp.content.read(1024)
-                if not chunk:
-                    break
-                total_received += len(chunk)
-                print("Received chunk of size {} bytes.".format(len(chunk)))
 
-            print("Total object size received {} bytes.".format(
-                total_received))
-
-        if http_status == 200:
+        if http_status == 206:
             print("HTTP status {} OK!".format(http_status))
         else:
             print("ERROR : BAD RESPONSE! status = {}".format(http_status))

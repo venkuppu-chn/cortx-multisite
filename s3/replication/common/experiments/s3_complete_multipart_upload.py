@@ -17,31 +17,36 @@
 #
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-#
 
-from config import Config
 import aiohttp
 import asyncio
 import sys
+import urllib
 from os.path import abspath, join, dirname
 from s3replicationcommon.aws_v4_signer import AWSV4Signer
 
 # Import config module from '../tests/system'
-sys.path.append(abspath(join(dirname(__file__), '..', 'tests', 'system')))
-
+sys.path.append(abspath(join(dirname(__file__),'..','tests', 'system')))
+from config import Config
 
 async def main():
     async with aiohttp.ClientSession() as session:
-
         config = Config()
 
-        # Ensure bucket and object exists before test.
         bucket_name = config.source_bucket_name
-        object_name = config.object_name_prefix + "test"
+        object_name = config.object_name_prefix
+
+        # Provide actual upload ID in place of __UPLOAD_ID__
+        upload_id = "__UPLOAD_ID__"
 
         request_uri = AWSV4Signer.fmt_s3_request_uri(bucket_name, object_name)
-        query_params = ""
+        query_params = urllib.parse.urlencode({'uploadId': upload_id})
         body = ""
+
+        # Pass the ETag in xml format
+        # Example: etag_xml = '<CompleteMultipartUpload><Part><ETag>"4736244e16c2218f68d01fb3610321ed"</ETag>
+        # <PartNumber>1</PartNumber></Part></CompleteMultipartUpload>'
+        etag_xml = '<CompleteMultipartUpload><Part><ETag>__ETAG_PART1__</ETag><PartNumber>1</PartNumber></Part></CompleteMultipartUpload>'
 
         headers = AWSV4Signer(
             config.endpoint,
@@ -49,7 +54,7 @@ async def main():
             config.s3_region,
             config.access_key,
             config.secret_key).prepare_signed_header(
-            'GET',
+            'POST',
             request_uri,
             query_params,
             body)
@@ -58,21 +63,12 @@ async def main():
             print("Failed to generate v4 signature")
             sys.exit(-1)
 
-        total_received = 0
+        print('POST on {}'.format(config.endpoint + request_uri))
 
-        print('GET on {}'.format(config.endpoint + request_uri))
-        async with session.get(config.endpoint + request_uri,
-                               headers=headers) as resp:
+        async with session.post(config.endpoint + request_uri,
+            data=etag_xml, params=query_params, headers=headers) as resp:
             http_status = resp.status
-            while True:
-                chunk = await resp.content.read(1024)
-                if not chunk:
-                    break
-                total_received += len(chunk)
-                print("Received chunk of size {} bytes.".format(len(chunk)))
-
-            print("Total object size received {} bytes.".format(
-                total_received))
+            print("Response of POST request {} ".format(resp))
 
         if http_status == 200:
             print("HTTP status {} OK!".format(http_status))

@@ -46,23 +46,25 @@ async def main():
 
     # Generate bucket names
     bucket_name = config.source_bucket_name
-    object_name = config.object_name_prefix + "test"
 
     # Generate object names
-    object_name = config.object_name_prefix + "test"
+    object_name = str(config.object_name_prefix)
     request_id = "dummy-request-id"
 
     # Get tag-name and tag-value from config
+    tagset = {}
+
     tag_name = config.object_tag_name
     tag_value = config.object_tag_value
+    tagset[tag_name] = tag_value
 
     tag_object = S3AsyncPutObjectTagging(session, request_id,
                                          bucket_name, object_name,
-                                         tag_name, tag_value)
+                                         tagset)
 
     await tag_object.send()
 
-    logger.info("S3AsyncPutObjectTaggin test passed!")
+    logger.info("S3AsyncPutObjectTagging test passed!")
     await session.close()
 
 loop = asyncio.get_event_loop()

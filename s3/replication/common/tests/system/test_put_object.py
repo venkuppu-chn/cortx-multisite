@@ -51,12 +51,12 @@ async def main():
     bucket_name = config.source_bucket_name
 
     # Generate object names
-    object_name = config.object_name_prefix + "test"
+    object_name = str(config.object_name_prefix)
     object_size = config.object_size
     request_id = "dummy-request-id"
 
     object_reader = FixedObjectDataGenerator(
-                        logger, object_name, object_size)
+        logger, object_name, object_size)
 
     object_writer = S3AsyncPutObject(session, request_id,
                                      bucket_name,

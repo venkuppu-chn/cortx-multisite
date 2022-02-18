@@ -48,11 +48,12 @@ def main():
     # CONFIG OPTIONS
     bucket_name = config.source_bucket_name
     dest_bucket_name = config.target_bucket_name
-    object_name_prefix = config.object_name_prefix
+    object_name_prefix = str(config.object_name_prefix)
     iam_role = config.iam_role
 
     # Create temp replication policy file.
-    os.system('cp ./tests/system/config/replication_policy_sample.json temp_policy.json')
+    os.system(
+        'cp ./tests/system/config/replication_policy_sample.json temp_policy.json')
 
     matches = ['_ACCOUNT_ID_', '_REPLICATION_ENABLED_BUCKET_']
 
@@ -63,7 +64,10 @@ def main():
         for line in file:
             if all(x in line for x in matches):
                 line = re.sub('(_ACCOUNT_ID_)', str(iam_role), line)
-                line = re.sub('(_REPLICATION_ENABLED_BUCKET_)', bucket_name, line)
+                line = re.sub(
+                    '(_REPLICATION_ENABLED_BUCKET_)',
+                    bucket_name,
+                    line)
                 print(line)
             elif '_DESTINATION_BUCKET_' in line:
                 line = re.sub('(_DESTINATION_BUCKET_)', dest_bucket_name, line)
